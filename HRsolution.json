@@ -1,0 +1,299 @@
+{
+  "name": "HR solution",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Google Search",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "role",
+              "fieldType": "textarea"
+            },
+            {
+              "fieldLabel": "level",
+              "fieldType": "textarea"
+            },
+            {
+              "fieldLabel": "location",
+              "fieldType": "textarea"
+            },
+            {
+              "fieldLabel": "result",
+              "fieldType": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -1152,
+        0
+      ],
+      "id": "a25b84a5-a2f1-458e-81d2-b07c30e05d36",
+      "name": "On form submission",
+      "webhookId": "YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "url": "=https://serpapi.com/search.json?engine=google&q={{ $json['Search Query'] }}&api_key=YOUR_API_KEY&num={{ $json.num }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -608,
+        0
+      ],
+      "id": "f1a15e20-f11d-4c56-8fc0-48e935adeeaf",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a3f8471b-741e-45ed-94c9-a394a5fad2a3",
+              "name": "Search Query",
+              "value": "=site:linkedin.com/in \"{{ $json.role }}\" \"{{ $json.level }}\" \"{{ $json.location }}\"",
+              "type": "string"
+            },
+            {
+              "id": "cfbe7e63-901b-4967-ab00-2f723225409a",
+              "name": "num",
+              "value": "={{ $json.result }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -864,
+        0
+      ],
+      "id": "3281d58b-692c-4418-bc52-77bd2810aaa4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst results = [];\n\nfor (const item of items) {\n  const organic = item.json.organic_results || [];\n\n  for (const result of organic) {\n    results.push({\n      title: result.title || null,\n      link: result.link || null,\n      description: result.snippet || null,\n      displayed_link: result.displayed_link || null,\n      \n  snippet_highlighted_words: result.snippet_highlighted_words || [],\n\n      // nested safe extraction\n      languages: result.about_this_result?.languages || [],\n      regions: result.about_this_result?.regions || []\n    });\n  }\n}\n\nreturn results.map(r => ({ json: r }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        0
+      ],
+      "id": "dc15fc8e-78d9-486a-b8a9-cb3899db1b4a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        0
+      ],
+      "id": "9923ef7f-bdf5-4a25-b348-79d63d68fd36",
+      "name": "Wait",
+      "webhookId": "YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "candidates",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $json.title }}",
+            "link": "={{ $json.link }}",
+            "description": "={{ $json.description }}",
+            "displayed_link": "={{ $json.displayed_link }}",
+            "regions": "={{ $json.regions }}",
+            "languages": "={{ $json.languages }}",
+            "keywords": "={{ $json.snippet_highlighted_words }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "displayed_link",
+              "displayName": "displayed_link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "regions",
+              "displayName": "regions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "languages",
+              "displayName": "languages",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "keywords",
+              "displayName": "keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        0
+      ],
+      "id": "a5983555-82fe-42f4-8f2f-d20d8ef4d2bb",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_SHEET_ID",
+          "name": "YOUR_CREDENTIAL_NAME"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "id": "",
+  "tags": []
+}
