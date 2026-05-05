@@ -79,3 +79,6 @@ for (const item of items) {
 }
 
 return results.map(r => ({ json: r }));
+```
+## Result
+<img src="./src/sheet.png" />
